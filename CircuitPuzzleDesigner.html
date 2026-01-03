@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Circuit Puzzle Designer V2 - With Themes</title>
+    <title>Circuit Puzzle Designer V2 - Enhanced Preview</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -11,7 +11,7 @@
             color: #fff;
             padding: 20px;
         }
-        .container { max-width: 1600px; margin: 0 auto; }
+        .container { max-width: 1800px; margin: 0 auto; }
         h1 { text-align: center; color: #D4AF37; margin-bottom: 20px; }
         .workspace { display: grid; grid-template-columns: 260px 1fr 280px 240px; gap: 15px; margin-bottom: 20px; }
         .panel { background: rgba(42, 26, 58, 0.9); border: 2px solid #8B7355; border-radius: 8px; padding: 15px; max-height: 750px; overflow-y: auto; }
@@ -38,17 +38,67 @@
         .btn { padding: 8px 15px; background: #8B7355; border: none; border-radius: 4px; color: #fff; cursor: pointer; font-size: 12px; margin: 3px; width: calc(100% - 6px); }
         .btn:hover { background: #D4AF37; }
         .btn-primary { background: linear-gradient(135deg, #ff8800 0%, #ff6600 100%); }
+        .btn-success { background: linear-gradient(135deg, #00ff66 0%, #00aa44 100%); }
         .btn-small { padding: 3px 6px; font-size: 10px; }
         .theme-btn { padding: 6px; font-size: 11px; }
         .tools-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
         .lighting-item { background: rgba(139, 115, 85, 0.2); padding: 5px; margin: 3px 0; border-radius: 4px; display: flex; justify-content: space-between; font-size: 11px; }
         .json-output { background: #000; color: #0f0; padding: 12px; border-radius: 4px; font-family: 'Courier New', monospace; font-size: 10px; max-height: 400px; overflow-y: auto; white-space: pre-wrap; }
         .instructions { background: rgba(212, 175, 55, 0.1); border: 1px solid #D4AF37; border-radius: 4px; padding: 6px; margin-bottom: 8px; font-size: 10px; }
+        
+        /* Preview/Play Mode Styles */
+        #previewModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 1000; overflow: auto; }
+        #previewModal.active { display: block; }
+        .preview-container { max-width: 900px; margin: 40px auto; padding: 20px; }
+        .preview-header { text-align: center; margin-bottom: 20px; }
+        .preview-header h2 { color: #D4AF37; font-size: 28px; margin-bottom: 10px; }
+        .preview-stats { display: flex; justify-content: space-between; padding: 15px; background: rgba(42, 26, 58, 0.9); border-radius: 8px; margin-bottom: 20px; }
+        .preview-stats div { color: #D4AF37; font-size: 16px; }
+        .preview-grid-container { display: flex; justify-content: center; margin-bottom: 20px; }
+        .preview-grid { display: inline-grid; gap: 3px; background: var(--grid-color); padding: 3px; border: 4px solid var(--grid-color); border-radius: 8px; }
+        .preview-cell { width: 70px; height: 70px; background: var(--bg-color); border: 2px solid #4a4a5e; cursor: pointer; position: relative; display: flex; align-items: center; justify-content: center; font-size: 45px; transition: all 0.2s; }
+        .preview-cell:hover { transform: scale(1.05); }
+        .preview-cell.cursor-here { box-shadow: 0 0 15px rgba(212, 175, 55, 0.8); border-color: #D4AF37; }
+        .preview-cell.source, .preview-cell.destination { background: var(--energy-color); color: #000; font-weight: bold; font-size: 24px; }
+        .preview-cell.obstacle { background: #8B4513; }
+        .preview-cell.solved { animation: pulse 0.5s ease; }
+        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
+        
+        /* Edge indicators */
+        .edge-indicator {
+            position: absolute;
+            background: var(--energy-color);
+            box-shadow: 0 0 10px var(--energy-color);
+        }
+        .edge-top { width: 30%; height: 6px; top: -3px; left: 35%; }
+        .edge-bottom { width: 30%; height: 6px; bottom: -3px; left: 35%; }
+        .edge-left { width: 6px; height: 30%; left: -3px; top: 35%; }
+        .edge-right { width: 6px; height: 30%; right: -3px; top: 35%; }
+        
+        /* Flow particles */
+        .flow-particle { position: absolute; width: 8px; height: 8px; background: var(--energy-color); border-radius: 50%; box-shadow: 0 0 10px var(--energy-color); pointer-events: none; }
+        
+        /* Win Screen */
+        #winScreen { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 1001; align-items: center; justify-content: center; }
+        #winScreen.active { display: flex; }
+        .win-content { text-align: center; padding: 50px; background: linear-gradient(135deg, rgba(42, 26, 58, 0.95) 0%, rgba(26, 26, 46, 0.95) 100%); border: 3px solid #D4AF37; border-radius: 20px; box-shadow: 0 0 50px rgba(212, 175, 55, 0.5); animation: winAppear 0.5s ease; }
+        @keyframes winAppear { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        .win-content h1 { font-size: 48px; color: #D4AF37; margin-bottom: 20px; text-shadow: 0 0 20px rgba(212, 175, 55, 0.8); animation: glow 2s ease-in-out infinite; }
+        @keyframes glow { 0%, 100% { text-shadow: 0 0 20px rgba(212, 175, 55, 0.8); } 50% { text-shadow: 0 0 40px rgba(212, 175, 55, 1); } }
+        .win-stats { margin: 30px 0; font-size: 24px; color: #fff; }
+        .win-stats div { margin: 10px 0; }
+        .win-stats .stat-label { color: #D4AF37; }
+        .win-stats .stat-value { color: #00ff66; font-weight: bold; }
+        .win-controls { margin-top: 30px; }
+        .win-controls button { padding: 15px 40px; font-size: 18px; margin: 0 10px; }
+        
+        .preview-controls { text-align: center; margin-top: 20px; }
+        .preview-controls button { padding: 12px 30px; margin: 0 10px; font-size: 16px; }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>⚡ Circuit Puzzle Designer V2 - Visual Customization Edition ⚡</h1>
+        <h1>⚡ Circuit Puzzle Designer V2 - Enhanced Preview ⚡</h1>
         
         <div class="workspace">
             <div class="panel">
@@ -115,6 +165,7 @@
                 <div id="lightingList"></div>
                 
                 <h2>Actions</h2>
+                <button class="btn btn-success" onclick="testPuzzle()">▶️ Test Puzzle</button>
                 <button class="btn btn-primary" onclick="generateJSON()">📋 Generate JSON</button>
                 <button class="btn" onclick="clearGrid()">🗑️ Clear</button>
             </div>
@@ -146,8 +197,50 @@
         </div>
     </div>
 
+    <!-- Preview/Play Modal -->
+    <div id="previewModal">
+        <div class="preview-container">
+            <div class="preview-header">
+                <h2 id="previewTitle">Test Puzzle</h2>
+            </div>
+            
+            <div class="preview-stats">
+                <div>Moves: <span id="previewMoves">0</span></div>
+                <div id="previewTimer">Time: <span id="previewTime">0</span>s</div>
+                <div style="color: #aaa; font-size: 12px;">Arrows/Click to play | Esc to close</div>
+            </div>
+            
+            <div class="preview-grid-container">
+                <div id="previewGrid" class="preview-grid"></div>
+            </div>
+            
+            <div class="preview-controls">
+                <button class="btn btn-primary" onclick="resetPreview()">🔄 Reset</button>
+                <button class="btn" onclick="closePreview()">❌ Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Win Screen -->
+    <div id="winScreen">
+        <div class="win-content">
+            <h1>🎉 PUZZLE SOLVED! 🎉</h1>
+            <div class="win-stats">
+                <div><span class="stat-label">Time:</span> <span class="stat-value" id="winTime">0</span> seconds</div>
+                <div><span class="stat-label">Moves:</span> <span class="stat-value" id="winMoves">0</span></div>
+                <div><span class="stat-label">Efficiency:</span> <span class="stat-value" id="winRating">★★★</span></div>
+            </div>
+            <div class="win-controls">
+                <button class="btn btn-primary" onclick="resetPreview()">🔄 Try Again</button>
+                <button class="btn" onclick="closeWinScreen()">✓ Continue</button>
+            </div>
+        </div>
+    </div>
+
     <script>
 let gridSize = 7, selectedCell = null, currentTool = 'straight', gridData = [], sourceCell = null, destCell = null, lightingEffects = [];
+let previewActive = false, previewCursorX = 0, previewCursorY = 0, previewMoves = 0, previewStartTime = 0, previewTimer = null, previewSolved = false;
+let previewGridData = [];
 
 const themePresets = {
     fire: {energyColor:'#ff3300',pipeColor:'#aa4400',bgColor:'#2a1410',gridLineColor:'#cc6633',flowSpeed:4,particleCount:15,ambientParticleCount:40,showGears:true,showSteam:true},
@@ -168,8 +261,7 @@ function initGrid() {
         for (let x = 0; x < gridSize; x++) {
             const cell = document.createElement('div');
             cell.className = 'cell empty';
-            cell.dataset.x = x;
-            cell.dataset.y = y;
+            cell.dataset.x = x; cell.dataset.y = y;
             cell.onclick = () => selectCell(x, y);
             cell.oncontextmenu = (e) => { e.preventDefault(); selectCell(x, y); rotatePipe(); };
             grid.appendChild(cell);
@@ -178,195 +270,157 @@ function initGrid() {
     }
 }
 
-function selectCell(x, y) {
-    selectedCell = {x, y};
-    updateGrid();
-    document.getElementById('currentRotation').value = gridData[y][x].rotation;
+function selectCell(x, y) { selectedCell = {x, y}; updateGrid(); document.getElementById('currentRotation').value = gridData[y][x].rotation; }
+function setTool(tool) { currentTool = tool; document.querySelectorAll('.tool-button').forEach(btn => btn.classList.remove('active')); event.target.classList.add('active'); if (selectedCell) { const {x, y} = selectedCell; gridData[y][x].type = tool; gridData[y][x].rotation = 0; gridData[y][x].fixed = (tool === 'empty' || tool === 'obstacle'); updateGrid(); } }
+function rotatePipe() { if (!selectedCell) return; const {x, y} = selectedCell; const cell = gridData[y][x]; if (cell.type === 'straight' || cell.type === 'corner') { cell.rotation = (cell.rotation + 1) % 4; document.getElementById('currentRotation').value = cell.rotation; updateGrid(); } }
+function setRotation() { if (!selectedCell) return; const {x, y} = selectedCell; const rotation = parseInt(document.getElementById('currentRotation').value); if (rotation >= 0 && rotation <= 3) { gridData[y][x].rotation = rotation; updateGrid(); } }
+function toggleFixed() { if (!selectedCell) return; const {x, y} = selectedCell; const cell = gridData[y][x]; if (cell.type === 'straight' || cell.type === 'corner') { cell.fixed = !cell.fixed; updateGrid(); } }
+function setSource() { if (!selectedCell) { alert('Select a cell first!'); return; } sourceCell = {...selectedCell}; document.getElementById('sourcePos').value = `(${sourceCell.x}, ${sourceCell.y})`; updateGrid(); }
+function setDestination() { if (!selectedCell) { alert('Select a cell first!'); return; } destCell = {...selectedCell}; document.getElementById('destPos').value = `(${destCell.x}, ${destCell.y})`; updateGrid(); }
+function addLighting() { if (!selectedCell) { alert('Select a cell first!'); return; } lightingEffects.push({x: selectedCell.x, y: selectedCell.y, type: document.getElementById('lightingType').value}); updateLightingList(); }
+function removeLighting(index) { lightingEffects.splice(index, 1); updateLightingList(); }
+function updateLightingList() { const list = document.getElementById('lightingList'); list.innerHTML = ''; lightingEffects.forEach((light, i) => { const item = document.createElement('div'); item.className = 'lighting-item'; item.innerHTML = `<span>(${light.x},${light.y}) ${light.type}</span><button class="btn btn-small" onclick="removeLighting(${i})">X</button>`; list.appendChild(item); }); }
+function updateGrid() { document.querySelectorAll('.cell').forEach(cell => { const x = parseInt(cell.dataset.x), y = parseInt(cell.dataset.y), data = gridData[y][x]; cell.className = 'cell ' + data.type; if (selectedCell && selectedCell.x === x && selectedCell.y === y) cell.classList.add('selected'); if (sourceCell && sourceCell.x === x && sourceCell.y === y) { cell.className = 'cell source'; cell.innerHTML = 'S'; } else if (destCell && destCell.x === x && destCell.y === y) { cell.className = 'cell destination'; cell.innerHTML = 'D'; } else { cell.innerHTML = getPipeSymbol(data.type, data.rotation); if (data.type === 'straight' || data.type === 'corner') { cell.innerHTML += `<span class="rotation-indicator">R${data.rotation}</span>`; if (data.fixed) cell.innerHTML += `<span class="fixed-indicator">🔒</span>`; } } }); }
+function getPipeSymbol(type, rotation) { if (type === 'empty') return ''; if (type === 'obstacle') return '⚙'; if (type === 'straight') return rotation % 2 === 0 ? '━' : '┃'; if (type === 'corner') return ['┗', '┏', '┓', '┛'][rotation]; return ''; }
+function loadTheme(themeName) { const theme = themePresets[themeName]; document.getElementById('energyColor').value = theme.energyColor; document.getElementById('pipeColor').value = theme.pipeColor; document.getElementById('bgColor').value = theme.bgColor; document.getElementById('gridLineColor').value = theme.gridLineColor; document.getElementById('flowSpeed').value = theme.flowSpeed; document.getElementById('particleCount').value = theme.particleCount; document.getElementById('ambientParticleCount').value = theme.ambientParticleCount; document.getElementById('showGears').checked = theme.showGears; document.getElementById('showSteam').checked = theme.showSteam; updateSlider('flowSpeed'); updateSlider('particleCount'); updateSlider('ambientParticleCount'); }
+function updateSlider(id) { document.getElementById(id + 'Value').textContent = document.getElementById(id).value; }
+function generateJSON() { if (!sourceCell || !destCell) { alert('Set source and destination!'); return; } const puzzleId = document.getElementById('puzzleId').value || 'my_puzzle'; const grid = []; for (let y = 0; y < gridSize; y++) { const row = []; for (let x = 0; x < gridSize; x++) { const cell = gridData[y][x]; if (sourceCell && sourceCell.x === x && sourceCell.y === y) row.push('SOURCE'); else if (destCell && destCell.x === x && destCell.y === y) row.push('DEST'); else if (cell.type === 'empty') row.push('empty'); else if (cell.type === 'obstacle') row.push('obstacle'); else row.push({type: cell.type, rotation: cell.rotation, fixed: cell.fixed}); } grid.push(row); } const puzzle = { [puzzleId]: { name: document.getElementById('puzzleName').value || 'My Puzzle', gridSize: gridSize, timeLimit: parseInt(document.getElementById('timeLimit').value) || 0, source: {x: sourceCell.x, y: sourceCell.y, edge: parseInt(document.getElementById('sourceEdge').value)}, destination: {x: destCell.x, y: destCell.y, edge: parseInt(document.getElementById('destEdge').value)}, lighting: lightingEffects, grid: grid, visual: { energyColor: document.getElementById('energyColor').value, pipeColor: document.getElementById('pipeColor').value, bgColor: document.getElementById('bgColor').value, gridLineColor: document.getElementById('gridLineColor').value, flowSpeed: parseInt(document.getElementById('flowSpeed').value), particleCount: parseInt(document.getElementById('particleCount').value), ambientParticleCount: parseInt(document.getElementById('ambientParticleCount').value), showGears: document.getElementById('showGears').checked, showSteam: document.getElementById('showSteam').checked }, description: document.getElementById('description').value || '' } }; document.getElementById('jsonOutput').textContent = JSON.stringify(puzzle, null, 2); }
+function copyJSON() { const text = document.getElementById('jsonOutput').textContent; navigator.clipboard.writeText(text).then(() => alert('Copied!')); }
+function clearGrid() { if (confirm('Clear grid?')) { initGrid(); sourceCell = null; destCell = null; lightingEffects = []; document.getElementById('sourcePos').value = ''; document.getElementById('destPos').value = ''; updateLightingList(); } }
+
+// PREVIEW MODE WITH ENHANCEMENTS
+function testPuzzle() {
+    if (!sourceCell || !destCell) { alert('Set source and destination first!'); return; }
+    previewGridData = JSON.parse(JSON.stringify(gridData));
+    const energyColor = document.getElementById('energyColor').value;
+    const bgColor = document.getElementById('bgColor').value;
+    const gridColor = document.getElementById('gridLineColor').value;
+    document.getElementById('previewModal').style.setProperty('--energy-color', energyColor);
+    document.getElementById('previewModal').style.setProperty('--bg-color', bgColor);
+    document.getElementById('previewModal').style.setProperty('--grid-color', gridColor);
+    document.getElementById('previewModal').style.background = `radial-gradient(circle, ${bgColor} 0%, #000000 100%)`;
+    document.getElementById('previewTitle').textContent = document.getElementById('puzzleName').value || 'Test Puzzle';
+    const timeLimit = parseInt(document.getElementById('timeLimit').value) || 0;
+    document.getElementById('previewTimer').style.display = timeLimit > 0 ? 'block' : 'none';
+    previewMoves = 0; previewSolved = false; previewCursorX = Math.floor(gridSize / 2); previewCursorY = Math.floor(gridSize / 2); previewStartTime = Date.now();
+    buildPreviewGrid();
+    if (timeLimit > 0) { if (previewTimer) clearInterval(previewTimer); previewTimer = setInterval(() => { const elapsed = Math.floor((Date.now() - previewStartTime) / 1000); const remaining = Math.max(0, timeLimit - elapsed); document.getElementById('previewTime').textContent = remaining; if (remaining === 0 && !previewSolved) { showWinScreen(false); } }, 100); } else { if (previewTimer) clearInterval(previewTimer); previewTimer = setInterval(() => { const elapsed = Math.floor((Date.now() - previewStartTime) / 1000); document.getElementById('previewTime').textContent = elapsed; }, 100); }
+    previewActive = true; document.getElementById('previewModal').classList.add('active');
 }
 
-function setTool(tool) {
-    currentTool = tool;
-    document.querySelectorAll('.tool-button').forEach(btn => btn.classList.remove('active'));
-    event.target.classList.add('active');
-    if (selectedCell) {
-        const {x, y} = selectedCell;
-        gridData[y][x].type = tool;
-        gridData[y][x].rotation = 0;
-        gridData[y][x].fixed = (tool === 'empty' || tool === 'obstacle');
-        updateGrid();
-    }
-}
-
-function rotatePipe() {
-    if (!selectedCell) return;
-    const {x, y} = selectedCell;
-    const cell = gridData[y][x];
-    if (cell.type === 'straight' || cell.type === 'corner') {
-        cell.rotation = (cell.rotation + 1) % 4;
-        document.getElementById('currentRotation').value = cell.rotation;
-        updateGrid();
-    }
-}
-
-function setRotation() {
-    if (!selectedCell) return;
-    const {x, y} = selectedCell;
-    const rotation = parseInt(document.getElementById('currentRotation').value);
-    if (rotation >= 0 && rotation <= 3) {
-        gridData[y][x].rotation = rotation;
-        updateGrid();
-    }
-}
-
-function toggleFixed() {
-    if (!selectedCell) return;
-    const {x, y} = selectedCell;
-    const cell = gridData[y][x];
-    if (cell.type === 'straight' || cell.type === 'corner') {
-        cell.fixed = !cell.fixed;
-        updateGrid();
-    }
-}
-
-function setSource() {
-    if (!selectedCell) { alert('Select a cell first!'); return; }
-    sourceCell = {...selectedCell};
-    document.getElementById('sourcePos').value = `(${sourceCell.x}, ${sourceCell.y})`;
-    updateGrid();
-}
-
-function setDestination() {
-    if (!selectedCell) { alert('Select a cell first!'); return; }
-    destCell = {...selectedCell};
-    document.getElementById('destPos').value = `(${destCell.x}, ${destCell.y})`;
-    updateGrid();
-}
-
-function addLighting() {
-    if (!selectedCell) { alert('Select a cell first!'); return; }
-    lightingEffects.push({x: selectedCell.x, y: selectedCell.y, type: document.getElementById('lightingType').value});
-    updateLightingList();
-}
-
-function removeLighting(index) {
-    lightingEffects.splice(index, 1);
-    updateLightingList();
-}
-
-function updateLightingList() {
-    const list = document.getElementById('lightingList');
-    list.innerHTML = '';
-    lightingEffects.forEach((light, i) => {
-        const item = document.createElement('div');
-        item.className = 'lighting-item';
-        item.innerHTML = `<span>(${light.x},${light.y}) ${light.type}</span><button class="btn btn-small" onclick="removeLighting(${i})">X</button>`;
-        list.appendChild(item);
-    });
-}
-
-function updateGrid() {
-    document.querySelectorAll('.cell').forEach(cell => {
-        const x = parseInt(cell.dataset.x), y = parseInt(cell.dataset.y), data = gridData[y][x];
-        cell.className = 'cell ' + data.type;
-        if (selectedCell && selectedCell.x === x && selectedCell.y === y) cell.classList.add('selected');
+function buildPreviewGrid() {
+    const grid = document.getElementById('previewGrid'); grid.innerHTML = ''; grid.style.gridTemplateColumns = `repeat(${gridSize}, 70px)`;
+    const pipeColor = document.getElementById('pipeColor').value;
+    for (let y = 0; y < gridSize; y++) { for (let x = 0; x < gridSize; x++) {
+        const cell = document.createElement('div'); cell.className = 'preview-cell'; cell.dataset.x = x; cell.dataset.y = y; cell.style.color = pipeColor;
+        const data = previewGridData[y][x];
         if (sourceCell && sourceCell.x === x && sourceCell.y === y) {
-            cell.className = 'cell source'; cell.innerHTML = 'S';
+            cell.classList.add('source'); cell.innerHTML = 'S';
+            const edge = parseInt(document.getElementById('sourceEdge').value);
+            const edgeClass = ['edge-bottom', 'edge-right', 'edge-top', 'edge-left'][edge];
+            cell.innerHTML += `<div class="edge-indicator ${edgeClass}"></div>`;
         } else if (destCell && destCell.x === x && destCell.y === y) {
-            cell.className = 'cell destination'; cell.innerHTML = 'D';
-        } else {
-            cell.innerHTML = getPipeSymbol(data.type, data.rotation);
-            if (data.type === 'straight' || data.type === 'corner') {
-                cell.innerHTML += `<span class="rotation-indicator">R${data.rotation}</span>`;
-                if (data.fixed) cell.innerHTML += `<span class="fixed-indicator">🔒</span>`;
+            cell.classList.add('destination'); cell.innerHTML = 'D';
+            const edge = parseInt(document.getElementById('destEdge').value);
+            const edgeClass = ['edge-bottom', 'edge-right', 'edge-top', 'edge-left'][edge];
+            cell.innerHTML += `<div class="edge-indicator ${edgeClass}"></div>`;
+        } else if (data.type === 'obstacle') { cell.classList.add('obstacle'); cell.innerHTML = '⚙'; }
+        else if (data.type !== 'empty') { cell.innerHTML = getPipeSymbol(data.type, data.rotation); }
+        cell.onclick = () => previewClickCell(x, y); grid.appendChild(cell);
+    } }
+    updatePreviewCursor();
+}
+
+function previewClickCell(x, y) { if (previewSolved) return; if (previewCursorX === x && previewCursorY === y) { previewRotateCell(); } else { previewCursorX = x; previewCursorY = y; updatePreviewCursor(); } }
+function previewRotateCell() { if (previewSolved) return; const cell = previewGridData[previewCursorY][previewCursorX]; if (!cell.fixed && (cell.type === 'straight' || cell.type === 'corner')) { cell.rotation = (cell.rotation + 1) % 4; previewMoves++; document.getElementById('previewMoves').textContent = previewMoves; buildPreviewGrid(); checkPreviewSolution(); } }
+function updatePreviewCursor() { document.querySelectorAll('.preview-cell').forEach(cell => { const x = parseInt(cell.dataset.x); const y = parseInt(cell.dataset.y); if (x === previewCursorX && y === previewCursorY) { cell.classList.add('cursor-here'); } else { cell.classList.remove('cursor-here'); } }); }
+
+function checkPreviewSolution() {
+    const visited = new Set(); const queue = [{x: sourceCell.x, y: sourceCell.y}]; visited.add(`${sourceCell.x},${sourceCell.y}`);
+    while (queue.length > 0) {
+        const {x, y} = queue.shift();
+        if (x === destCell.x && y === destCell.y) { showWinScreen(true); return; }
+        const cell = previewGridData[y][x]; const connections = getConnections(cell, x, y);
+        connections.forEach(({nx, ny}) => {
+            const key = `${nx},${ny}`;
+            if (!visited.has(key) && nx >= 0 && nx < gridSize && ny >= 0 && ny < gridSize) {
+                const nextCell = previewGridData[ny][nx];
+                if (nextCell.type !== 'empty' && canConnect(x, y, nx, ny)) { visited.add(key); queue.push({x: nx, y: ny}); }
             }
-        }
-    });
-}
-
-function getPipeSymbol(type, rotation) {
-    if (type === 'empty') return '';
-    if (type === 'obstacle') return '⚙';
-    if (type === 'straight') return rotation % 2 === 0 ? '━' : '┃';
-    if (type === 'corner') return ['┗', '┏', '┓', '┛'][rotation];
-    return '';
-}
-
-function loadTheme(themeName) {
-    const theme = themePresets[themeName];
-    document.getElementById('energyColor').value = theme.energyColor;
-    document.getElementById('pipeColor').value = theme.pipeColor;
-    document.getElementById('bgColor').value = theme.bgColor;
-    document.getElementById('gridLineColor').value = theme.gridLineColor;
-    document.getElementById('flowSpeed').value = theme.flowSpeed;
-    document.getElementById('particleCount').value = theme.particleCount;
-    document.getElementById('ambientParticleCount').value = theme.ambientParticleCount;
-    document.getElementById('showGears').checked = theme.showGears;
-    document.getElementById('showSteam').checked = theme.showSteam;
-    updateSlider('flowSpeed'); updateSlider('particleCount'); updateSlider('ambientParticleCount');
-}
-
-function updateSlider(id) {
-    document.getElementById(id + 'Value').textContent = document.getElementById(id).value;
-}
-
-function generateJSON() {
-    if (!sourceCell || !destCell) { alert('Set source and destination!'); return; }
-    const puzzleId = document.getElementById('puzzleId').value || 'my_puzzle';
-    const grid = [];
-    for (let y = 0; y < gridSize; y++) {
-        const row = [];
-        for (let x = 0; x < gridSize; x++) {
-            const cell = gridData[y][x];
-            if (sourceCell && sourceCell.x === x && sourceCell.y === y) row.push('SOURCE');
-            else if (destCell && destCell.x === x && destCell.y === y) row.push('DEST');
-            else if (cell.type === 'empty') row.push('empty');
-            else if (cell.type === 'obstacle') row.push('obstacle');
-            else row.push({type: cell.type, rotation: cell.rotation, fixed: cell.fixed});
-        }
-        grid.push(row);
-    }
-    const puzzle = {
-        [puzzleId]: {
-            name: document.getElementById('puzzleName').value || 'My Puzzle',
-            gridSize: gridSize,
-            timeLimit: parseInt(document.getElementById('timeLimit').value) || 0,
-            source: {x: sourceCell.x, y: sourceCell.y, edge: parseInt(document.getElementById('sourceEdge').value)},
-            destination: {x: destCell.x, y: destCell.y, edge: parseInt(document.getElementById('destEdge').value)},
-            lighting: lightingEffects,
-            grid: grid,
-            visual: {
-                energyColor: document.getElementById('energyColor').value,
-                pipeColor: document.getElementById('pipeColor').value,
-                bgColor: document.getElementById('bgColor').value,
-                gridLineColor: document.getElementById('gridLineColor').value,
-                flowSpeed: parseInt(document.getElementById('flowSpeed').value),
-                particleCount: parseInt(document.getElementById('particleCount').value),
-                ambientParticleCount: parseInt(document.getElementById('ambientParticleCount').value),
-                showGears: document.getElementById('showGears').checked,
-                showSteam: document.getElementById('showSteam').checked
-            },
-            description: document.getElementById('description').value || ''
-        }
-    };
-    document.getElementById('jsonOutput').textContent = JSON.stringify(puzzle, null, 2);
-}
-
-function copyJSON() {
-    const text = document.getElementById('jsonOutput').textContent;
-    navigator.clipboard.writeText(text).then(() => alert('Copied!'));
-}
-
-function clearGrid() {
-    if (confirm('Clear grid?')) {
-        initGrid();
-        sourceCell = null;
-        destCell = null;
-        lightingEffects = [];
-        document.getElementById('sourcePos').value = '';
-        document.getElementById('destPos').value = '';
-        updateLightingList();
+        });
     }
 }
+
+function getConnections(cell, x, y) {
+    const connections = [];
+    if (sourceCell && sourceCell.x === x && sourceCell.y === y) {
+        const edge = parseInt(document.getElementById('sourceEdge').value);
+        if (edge === 0) connections.push({nx: x, ny: y + 1});
+        if (edge === 1) connections.push({nx: x - 1, ny: y});
+        if (edge === 2) connections.push({nx: x, ny: y - 1});
+        if (edge === 3) connections.push({nx: x + 1, ny: y});
+        return connections;
+    }
+    if (destCell && destCell.x === x && destCell.y === y) {
+        const edge = parseInt(document.getElementById('destEdge').value);
+        if (edge === 0) connections.push({nx: x, ny: y + 1});
+        if (edge === 1) connections.push({nx: x - 1, ny: y});
+        if (edge === 2) connections.push({nx: x, ny: y - 1});
+        if (edge === 3) connections.push({nx: x + 1, ny: y});
+        return connections;
+    }
+    if (cell.type === 'straight') {
+        if (cell.rotation % 2 === 0) { connections.push({nx: x - 1, ny: y}, {nx: x + 1, ny: y}); }
+        else { connections.push({nx: x, ny: y - 1}, {nx: x, ny: y + 1}); }
+    } else if (cell.type === 'corner') {
+        const dirs = [ [{nx: x, ny: y - 1}, {nx: x + 1, ny: y}], [{nx: x + 1, ny: y}, {nx: x, ny: y + 1}], [{nx: x, ny: y + 1}, {nx: x - 1, ny: y}], [{nx: x - 1, ny: y}, {nx: x, ny: y - 1}] ];
+        connections.push(...dirs[cell.rotation]);
+    }
+    return connections;
+}
+
+function canConnect(x1, y1, x2, y2) {
+    const cell1 = previewGridData[y1][x1]; const cell2 = previewGridData[y2][x2];
+    const conn1 = getConnections(cell1, x1, y1); const conn2 = getConnections(cell2, x2, y2);
+    const cell1Connects = conn1.some(c => c.nx === x2 && c.ny === y2); const cell2Connects = conn2.some(c => c.nx === x1 && c.ny === y1);
+    return cell1Connects && cell2Connects;
+}
+
+function showWinScreen(success) {
+    previewSolved = true;
+    if (previewTimer) clearInterval(previewTimer);
+    const elapsed = Math.floor((Date.now() - previewStartTime) / 1000);
+    document.getElementById('winTime').textContent = elapsed;
+    document.getElementById('winMoves').textContent = previewMoves;
+    let rating = '★★★';
+    if (previewMoves > gridSize * 3) rating = '★';
+    else if (previewMoves > gridSize * 2) rating = '★★';
+    document.getElementById('winRating').textContent = rating;
+    if (success) {
+        document.getElementById('winScreen').classList.add('active');
+        document.querySelectorAll('.preview-cell').forEach(cell => {
+            if (!cell.classList.contains('source') && !cell.classList.contains('destination') && !cell.classList.contains('obstacle')) {
+                cell.classList.add('solved');
+            }
+        });
+    } else {
+        alert('Time\'s up! Try again.');
+    }
+}
+
+function closeWinScreen() { document.getElementById('winScreen').classList.remove('active'); }
+function resetPreview() { closeWinScreen(); testPuzzle(); }
+function closePreview() { previewActive = false; document.getElementById('previewModal').classList.remove('active'); if (previewTimer) clearInterval(previewTimer); closeWinScreen(); }
+
+document.addEventListener('keydown', (e) => {
+    if (!previewActive || previewSolved) return;
+    if (e.key === 'Escape') { closePreview(); }
+    else if (e.key === 'ArrowLeft') { e.preventDefault(); previewCursorX = Math.max(0, previewCursorX - 1); updatePreviewCursor(); }
+    else if (e.key === 'ArrowRight') { e.preventDefault(); previewCursorX = Math.min(gridSize - 1, previewCursorX + 1); updatePreviewCursor(); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); previewCursorY = Math.max(0, previewCursorY - 1); updatePreviewCursor(); }
+    else if (e.key === 'ArrowDown') { e.preventDefault(); previewCursorY = Math.min(gridSize - 1, previewCursorY + 1); updatePreviewCursor(); }
+    else if (e.key === 'Enter' || e.key === ' ' || e.key === 'z') { e.preventDefault(); previewRotateCell(); }
+});
 
 document.getElementById('gridSize').addEventListener('change', initGrid);
 initGrid();
