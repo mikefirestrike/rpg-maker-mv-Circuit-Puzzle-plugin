@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Circuit Puzzle Designer V2 - With Themes</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #2a1a3a 100%);
+            color: #fff;
+            padding: 20px;
+        }
+        .container { max-width: 1600px; margin: 0 auto; }
+        h1 { text-align: center; color: #D4AF37; margin-bottom: 20px; }
+        .workspace { display: grid; grid-template-columns: 260px 1fr 280px 240px; gap: 15px; margin-bottom: 20px; }
+        .panel { background: rgba(42, 26, 58, 0.9); border: 2px solid #8B7355; border-radius: 8px; padding: 15px; max-height: 750px; overflow-y: auto; }
+        .panel h2 { color: #D4AF37; margin-bottom: 10px; font-size: 15px; }
+        .form-group { margin-bottom: 10px; }
+        label { display: block; margin-bottom: 3px; color: #D4AF37; font-size: 12px; }
+        input, select, textarea { width: 100%; padding: 5px; background: rgba(26, 26, 46, 0.9); border: 1px solid #8B7355; border-radius: 4px; color: #fff; font-size: 12px; }
+        input[type="color"] { height: 32px; cursor: pointer; }
+        input[type="range"] { width: calc(100% - 35px); display: inline-block; }
+        .slider-val { display: inline-block; width: 30px; text-align: right; color: #D4AF37; font-size: 11px; }
+        input[type="checkbox"] { width: auto; margin-right: 5px; }
+        .grid-container { display: flex; justify-content: center; padding: 15px; }
+        .grid { display: inline-grid; gap: 2px; background: #8B7355; padding: 2px; border: 3px solid #8B7355; }
+        .cell { width: 48px; height: 48px; background: #1a1a2e; border: 1px solid #4a4a5e; cursor: pointer; position: relative; display: flex; align-items: center; justify-content: center; font-size: 30px; }
+        .cell:hover { background: #2a2a4e; }
+        .cell.selected { background: #3a3a6e; box-shadow: inset 0 0 8px rgba(212, 175, 55, 0.5); }
+        .cell.source, .cell.destination { background: #ff8800; color: #000; font-weight: bold; font-size: 18px; }
+        .cell.obstacle { background: #8B4513; }
+        .rotation-indicator { position: absolute; top: 2px; right: 2px; font-size: 8px; background: rgba(212, 175, 55, 0.8); color: #000; padding: 1px 3px; border-radius: 2px; }
+        .fixed-indicator { position: absolute; top: 2px; left: 2px; font-size: 8px; background: rgba(255, 0, 0, 0.8); color: #fff; padding: 1px 3px; border-radius: 2px; }
+        .tool-button { padding: 7px; margin: 3px 0; background: rgba(139, 115, 85, 0.3); border: 1px solid #8B7355; border-radius: 4px; color: #fff; cursor: pointer; text-align: center; font-size: 11px; }
+        .tool-button:hover { background: rgba(139, 115, 85, 0.6); }
+        .tool-button.active { background: rgba(212, 175, 55, 0.4); border-color: #D4AF37; }
+        .btn { padding: 8px 15px; background: #8B7355; border: none; border-radius: 4px; color: #fff; cursor: pointer; font-size: 12px; margin: 3px; width: calc(100% - 6px); }
+        .btn:hover { background: #D4AF37; }
+        .btn-primary { background: linear-gradient(135deg, #ff8800 0%, #ff6600 100%); }
+        .btn-small { padding: 3px 6px; font-size: 10px; }
+        .theme-btn { padding: 6px; font-size: 11px; }
+        .tools-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+        .lighting-item { background: rgba(139, 115, 85, 0.2); padding: 5px; margin: 3px 0; border-radius: 4px; display: flex; justify-content: space-between; font-size: 11px; }
+        .json-output { background: #000; color: #0f0; padding: 12px; border-radius: 4px; font-family: 'Courier New', monospace; font-size: 10px; max-height: 400px; overflow-y: auto; white-space: pre-wrap; }
+        .instructions { background: rgba(212, 175, 55, 0.1); border: 1px solid #D4AF37; border-radius: 4px; padding: 6px; margin-bottom: 8px; font-size: 10px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>⚡ Circuit Puzzle Designer V2 - Visual Customization Edition ⚡</h1>
+        
+        <div class="workspace">
+            <div class="panel">
+                <h2>Puzzle Settings</h2>
+                <div class="form-group">
+                    <label>Puzzle ID:</label>
+                    <input type="text" id="puzzleId" value="my_puzzle">
+                </div>
+                <div class="form-group">
+                    <label>Name:</label>
+                    <input type="text" id="puzzleName" value="My Puzzle">
+                </div>
+                <div class="form-group">
+                    <label>Grid Size:</label>
+                    <select id="gridSize"><option value="5">5x5</option><option value="7" selected>7x7</option><option value="9">9x9</option></select>
+                </div>
+                <div class="form-group">
+                    <label>Time Limit (0=none):</label>
+                    <input type="number" id="timeLimit" value="120" min="0">
+                </div>
+                <div class="form-group">
+                    <label>Description:</label>
+                    <textarea id="description" rows="2"></textarea>
+                </div>
+                
+                <h2>Source & Destination</h2>
+                <div class="instructions">Edge: 0=Down, 1=Left, 2=Up, 3=Right</div>
+                <div class="form-group"><label>Source Pos:</label><input type="text" id="sourcePos" readonly></div>
+                <div class="form-group"><label>Source Edge:</label><input type="number" id="sourceEdge" value="3" min="0" max="3"></div>
+                <div class="tool-button" onclick="setSource()">Set Source</div>
+                <div class="form-group"><label>Dest Pos:</label><input type="text" id="destPos" readonly></div>
+                <div class="form-group"><label>Dest Edge:</label><input type="number" id="destEdge" value="1" min="0" max="3"></div>
+                <div class="tool-button" onclick="setDestination()">Set Destination</div>
+            </div>
+            
+            <div class="panel">
+                <h2>Grid Editor</h2>
+                <div class="instructions">Click to select. Right-click to rotate.</div>
+                <div class="grid-container">
+                    <div id="grid" class="grid"></div>
+                </div>
+            </div>
+            
+            <div class="panel">
+                <h2>Tools</h2>
+                <div class="tools-grid">
+                    <div class="tool-button" onclick="setTool('empty')">Empty</div>
+                    <div class="tool-button" onclick="setTool('obstacle')">Obstacle</div>
+                    <div class="tool-button active" onclick="setTool('straight')">Straight</div>
+                    <div class="tool-button" onclick="setTool('corner')">Corner</div>
+                </div>
+                
+                <h2>Pipe Controls</h2>
+                <div class="tool-button" onclick="rotatePipe()">↻ Rotate</div>
+                <div class="tool-button" onclick="toggleFixed()">🔒 Toggle Lock</div>
+                <div class="form-group"><label>Rotation:</label><input type="number" id="currentRotation" value="0" min="0" max="3" onchange="setRotation()"></div>
+                
+                <h2>Lighting</h2>
+                <div class="form-group">
+                    <label>Type:</label>
+                    <select id="lightingType"><option value="fire">Fire</option><option value="ice">Ice</option><option value="electric">Electric</option><option value="poison">Poison</option><option value="arcane">Arcane</option></select>
+                </div>
+                <div class="tool-button" onclick="addLighting()">Add Lighting</div>
+                <div id="lightingList"></div>
+                
+                <h2>Actions</h2>
+                <button class="btn btn-primary" onclick="generateJSON()">📋 Generate JSON</button>
+                <button class="btn" onclick="clearGrid()">🗑️ Clear</button>
+            </div>
+            
+            <div class="panel">
+                <h2>🎨 Visual Theme</h2>
+                <div class="form-group"><label>Energy Color:</label><input type="color" id="energyColor" value="#ff8800"></div>
+                <div class="form-group"><label>Pipe Color:</label><input type="color" id="pipeColor" value="#8b7355"></div>
+                <div class="form-group"><label>Background:</label><input type="color" id="bgColor" value="#1a1a2e"></div>
+                <div class="form-group"><label>Grid Lines:</label><input type="color" id="gridLineColor" value="#8b7355"></div>
+                <div class="form-group"><label>Flow Speed:</label><input type="range" id="flowSpeed" min="1" max="10" value="3" oninput="updateSlider('flowSpeed')"><span class="slider-val" id="flowSpeedValue">3</span></div>
+                <div class="form-group"><label>Flow Particles:</label><input type="range" id="particleCount" min="1" max="50" value="10" oninput="updateSlider('particleCount')"><span class="slider-val" id="particleCountValue">10</span></div>
+                <div class="form-group"><label>Ambient Particles:</label><input type="range" id="ambientParticleCount" min="0" max="100" value="30" oninput="updateSlider('ambientParticleCount')"><span class="slider-val" id="ambientParticleCountValue">30</span></div>
+                <div class="form-group"><label><input type="checkbox" id="showGears" checked> Gears</label></div>
+                <div class="form-group"><label><input type="checkbox" id="showSteam" checked> Steam</label></div>
+                
+                <h2>Quick Themes</h2>
+                <button class="btn theme-btn" onclick="loadTheme('fire')" style="background: linear-gradient(135deg, #ff3300, #ff6600)">🔥 Fire</button>
+                <button class="btn theme-btn" onclick="loadTheme('ice')" style="background: linear-gradient(135deg, #00ddff, #4488bb)">❄️ Ice</button>
+                <button class="btn theme-btn" onclick="loadTheme('nature')" style="background: linear-gradient(135deg, #00ff66, #338844)">🌿 Nature</button>
+                <button class="btn theme-btn" onclick="loadTheme('electric')" style="background: linear-gradient(135deg, #00ffff, #4466aa)">⚡ Electric</button>
+                <button class="btn theme-btn" onclick="loadTheme('arcane')" style="background: linear-gradient(135deg, #cc66ff, #664488)">🔮 Arcane</button>
+            </div>
+        </div>
+        
+        <div class="panel" style="max-height: 500px;">
+            <h2>JSON Output <button class="btn btn-small" onclick="copyJSON()" style="float:right;">Copy</button></h2>
+            <div class="json-output" id="jsonOutput">Click Generate JSON...</div>
+        </div>
+    </div>
+
+    <script>
+let gridSize = 7, selectedCell = null, currentTool = 'straight', gridData = [], sourceCell = null, destCell = null, lightingEffects = [];
+
+const themePresets = {
+    fire: {energyColor:'#ff3300',pipeColor:'#aa4400',bgColor:'#2a1410',gridLineColor:'#cc6633',flowSpeed:4,particleCount:15,ambientParticleCount:40,showGears:true,showSteam:true},
+    ice: {energyColor:'#00ddff',pipeColor:'#6699cc',bgColor:'#0a1a2a',gridLineColor:'#4488bb',flowSpeed:2,particleCount:12,ambientParticleCount:50,showGears:false,showSteam:false},
+    nature: {energyColor:'#00ff66',pipeColor:'#338844',bgColor:'#0f1f0f',gridLineColor:'#66aa66',flowSpeed:3,particleCount:20,ambientParticleCount:60,showGears:false,showSteam:true},
+    electric: {energyColor:'#00ffff',pipeColor:'#4466aa',bgColor:'#0a0a1a',gridLineColor:'#6688cc',flowSpeed:6,particleCount:25,ambientParticleCount:35,showGears:true,showSteam:false},
+    arcane: {energyColor:'#cc66ff',pipeColor:'#664488',bgColor:'#1a0a2a',gridLineColor:'#8855aa',flowSpeed:3,particleCount:18,ambientParticleCount:45,showGears:true,showSteam:true}
+};
+
+function initGrid() {
+    gridSize = parseInt(document.getElementById('gridSize').value);
+    const grid = document.getElementById('grid');
+    grid.innerHTML = '';
+    grid.style.gridTemplateColumns = `repeat(${gridSize}, 48px)`;
+    gridData = [];
+    for (let y = 0; y < gridSize; y++) {
+        gridData[y] = [];
+        for (let x = 0; x < gridSize; x++) {
+            const cell = document.createElement('div');
+            cell.className = 'cell empty';
+            cell.dataset.x = x;
+            cell.dataset.y = y;
+            cell.onclick = () => selectCell(x, y);
+            cell.oncontextmenu = (e) => { e.preventDefault(); selectCell(x, y); rotatePipe(); };
+            grid.appendChild(cell);
+            gridData[y][x] = {type: 'empty', rotation: 0, fixed: true};
+        }
+    }
+}
+
+function selectCell(x, y) {
+    selectedCell = {x, y};
+    updateGrid();
+    document.getElementById('currentRotation').value = gridData[y][x].rotation;
+}
+
+function setTool(tool) {
+    currentTool = tool;
+    document.querySelectorAll('.tool-button').forEach(btn => btn.classList.remove('active'));
+    event.target.classList.add('active');
+    if (selectedCell) {
+        const {x, y} = selectedCell;
+        gridData[y][x].type = tool;
+        gridData[y][x].rotation = 0;
+        gridData[y][x].fixed = (tool === 'empty' || tool === 'obstacle');
+        updateGrid();
+    }
+}
+
+function rotatePipe() {
+    if (!selectedCell) return;
+    const {x, y} = selectedCell;
+    const cell = gridData[y][x];
+    if (cell.type === 'straight' || cell.type === 'corner') {
+        cell.rotation = (cell.rotation + 1) % 4;
+        document.getElementById('currentRotation').value = cell.rotation;
+        updateGrid();
+    }
+}
+
+function setRotation() {
+    if (!selectedCell) return;
+    const {x, y} = selectedCell;
+    const rotation = parseInt(document.getElementById('currentRotation').value);
+    if (rotation >= 0 && rotation <= 3) {
+        gridData[y][x].rotation = rotation;
+        updateGrid();
+    }
+}
+
+function toggleFixed() {
+    if (!selectedCell) return;
+    const {x, y} = selectedCell;
+    const cell = gridData[y][x];
+    if (cell.type === 'straight' || cell.type === 'corner') {
+        cell.fixed = !cell.fixed;
+        updateGrid();
+    }
+}
+
+function setSource() {
+    if (!selectedCell) { alert('Select a cell first!'); return; }
+    sourceCell = {...selectedCell};
+    document.getElementById('sourcePos').value = `(${sourceCell.x}, ${sourceCell.y})`;
+    updateGrid();
+}
+
+function setDestination() {
+    if (!selectedCell) { alert('Select a cell first!'); return; }
+    destCell = {...selectedCell};
+    document.getElementById('destPos').value = `(${destCell.x}, ${destCell.y})`;
+    updateGrid();
+}
+
+function addLighting() {
+    if (!selectedCell) { alert('Select a cell first!'); return; }
+    lightingEffects.push({x: selectedCell.x, y: selectedCell.y, type: document.getElementById('lightingType').value});
+    updateLightingList();
+}
+
+function removeLighting(index) {
+    lightingEffects.splice(index, 1);
+    updateLightingList();
+}
+
+function updateLightingList() {
+    const list = document.getElementById('lightingList');
+    list.innerHTML = '';
+    lightingEffects.forEach((light, i) => {
+        const item = document.createElement('div');
+        item.className = 'lighting-item';
+        item.innerHTML = `<span>(${light.x},${light.y}) ${light.type}</span><button class="btn btn-small" onclick="removeLighting(${i})">X</button>`;
+        list.appendChild(item);
+    });
+}
+
+function updateGrid() {
+    document.querySelectorAll('.cell').forEach(cell => {
+        const x = parseInt(cell.dataset.x), y = parseInt(cell.dataset.y), data = gridData[y][x];
+        cell.className = 'cell ' + data.type;
+        if (selectedCell && selectedCell.x === x && selectedCell.y === y) cell.classList.add('selected');
+        if (sourceCell && sourceCell.x === x && sourceCell.y === y) {
+            cell.className = 'cell source'; cell.innerHTML = 'S';
+        } else if (destCell && destCell.x === x && destCell.y === y) {
+            cell.className = 'cell destination'; cell.innerHTML = 'D';
+        } else {
+            cell.innerHTML = getPipeSymbol(data.type, data.rotation);
+            if (data.type === 'straight' || data.type === 'corner') {
+                cell.innerHTML += `<span class="rotation-indicator">R${data.rotation}</span>`;
+                if (data.fixed) cell.innerHTML += `<span class="fixed-indicator">🔒</span>`;
+            }
+        }
+    });
+}
+
+function getPipeSymbol(type, rotation) {
+    if (type === 'empty') return '';
+    if (type === 'obstacle') return '⚙';
+    if (type === 'straight') return rotation % 2 === 0 ? '━' : '┃';
+    if (type === 'corner') return ['┗', '┏', '┓', '┛'][rotation];
+    return '';
+}
+
+function loadTheme(themeName) {
+    const theme = themePresets[themeName];
+    document.getElementById('energyColor').value = theme.energyColor;
+    document.getElementById('pipeColor').value = theme.pipeColor;
+    document.getElementById('bgColor').value = theme.bgColor;
+    document.getElementById('gridLineColor').value = theme.gridLineColor;
+    document.getElementById('flowSpeed').value = theme.flowSpeed;
+    document.getElementById('particleCount').value = theme.particleCount;
+    document.getElementById('ambientParticleCount').value = theme.ambientParticleCount;
+    document.getElementById('showGears').checked = theme.showGears;
+    document.getElementById('showSteam').checked = theme.showSteam;
+    updateSlider('flowSpeed'); updateSlider('particleCount'); updateSlider('ambientParticleCount');
+}
+
+function updateSlider(id) {
+    document.getElementById(id + 'Value').textContent = document.getElementById(id).value;
+}
+
+function generateJSON() {
+    if (!sourceCell || !destCell) { alert('Set source and destination!'); return; }
+    const puzzleId = document.getElementById('puzzleId').value || 'my_puzzle';
+    const grid = [];
+    for (let y = 0; y < gridSize; y++) {
+        const row = [];
+        for (let x = 0; x < gridSize; x++) {
+            const cell = gridData[y][x];
+            if (sourceCell && sourceCell.x === x && sourceCell.y === y) row.push('SOURCE');
+            else if (destCell && destCell.x === x && destCell.y === y) row.push('DEST');
+            else if (cell.type === 'empty') row.push('empty');
+            else if (cell.type === 'obstacle') row.push('obstacle');
+            else row.push({type: cell.type, rotation: cell.rotation, fixed: cell.fixed});
+        }
+        grid.push(row);
+    }
+    const puzzle = {
+        [puzzleId]: {
+            name: document.getElementById('puzzleName').value || 'My Puzzle',
+            gridSize: gridSize,
+            timeLimit: parseInt(document.getElementById('timeLimit').value) || 0,
+            source: {x: sourceCell.x, y: sourceCell.y, edge: parseInt(document.getElementById('sourceEdge').value)},
+            destination: {x: destCell.x, y: destCell.y, edge: parseInt(document.getElementById('destEdge').value)},
+            lighting: lightingEffects,
+            grid: grid,
+            visual: {
+                energyColor: document.getElementById('energyColor').value,
+                pipeColor: document.getElementById('pipeColor').value,
+                bgColor: document.getElementById('bgColor').value,
+                gridLineColor: document.getElementById('gridLineColor').value,
+                flowSpeed: parseInt(document.getElementById('flowSpeed').value),
+                particleCount: parseInt(document.getElementById('particleCount').value),
+                ambientParticleCount: parseInt(document.getElementById('ambientParticleCount').value),
+                showGears: document.getElementById('showGears').checked,
+                showSteam: document.getElementById('showSteam').checked
+            },
+            description: document.getElementById('description').value || ''
+        }
+    };
+    document.getElementById('jsonOutput').textContent = JSON.stringify(puzzle, null, 2);
+}
+
+function copyJSON() {
+    const text = document.getElementById('jsonOutput').textContent;
+    navigator.clipboard.writeText(text).then(() => alert('Copied!'));
+}
+
+function clearGrid() {
+    if (confirm('Clear grid?')) {
+        initGrid();
+        sourceCell = null;
+        destCell = null;
+        lightingEffects = [];
+        document.getElementById('sourcePos').value = '';
+        document.getElementById('destPos').value = '';
+        updateLightingList();
+    }
+}
+
+document.getElementById('gridSize').addEventListener('change', initGrid);
+initGrid();
+    </script>
+</body>
+</html>

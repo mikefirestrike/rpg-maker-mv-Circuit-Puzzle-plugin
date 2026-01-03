@@ -1,0 +1,38 @@
+CIRCUIT PUZZLE - QUICK INSTALL GUIDE
+=====================================
+
+STEP 1: PLUGIN
+--------------
+Copy MFS_CircuitRouting.js to:
+   YourProject/js/plugins/
+
+Open RPG Maker MV → Tools → Plugin Manager → Add plugin
+
+
+STEP 2: PUZZLE DATA  
+-------------------
+Copy ExamplePuzzles.json to:
+   YourProject/data/CircuitPuzzles.json
+
+(Or rename to match your plugin parameter setting)
+
+
+STEP 3: TEST IT
+---------------
+Create an event:
+   ◆Plugin Command: CircuitPuzzle load fire_theme_puzzle
+   ◆Wait: 1 frame
+   ◆Conditional Branch: Switch [0001] == ON
+     ◆Text: You win!
+
+
+STEP 4: DESIGN YOUR OWN
+-----------------------
+Open CircuitPuzzleDesigner.html in your web browser
+Click a theme preset
+Design your puzzle  
+Click "Generate JSON"
+Copy and paste into CircuitPuzzles.json
+
+
+DONE! That's it! See README.md for full documentation.

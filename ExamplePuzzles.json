@@ -1,0 +1,206 @@
+{
+  "fire_theme_puzzle": {
+    "name": "Fire Temple Challenge",
+    "gridSize": 7,
+    "timeLimit": 120,
+    "source": {"x": 0, "y": 3, "edge": 3},
+    "destination": {"x": 6, "y": 3, "edge": 1},
+    "lighting": [
+      {"x": 2, "y": 2, "type": "fire"},
+      {"x": 4, "y": 4, "type": "fire"}
+    ],
+    "visual": {
+      "energyColor": "#ff3300",
+      "pipeColor": "#aa4400",
+      "bgColor": "#2a1410",
+      "gridLineColor": "#cc6633",
+      "flowSpeed": 4,
+      "particleCount": 15,
+      "ambientParticleCount": 40,
+      "showGears": true,
+      "showSteam": true,
+      "particles": [
+        {
+          "type": "embers",
+          "count": 20,
+          "color": "#ff6600",
+          "speed": 2,
+          "size": 3
+        },
+        {
+          "type": "sparks",
+          "count": 10,
+          "color": "#ffaa00",
+          "speed": 5,
+          "size": 2
+        }
+      ]
+    },
+    "description": "Navigate through the burning temple"
+  },
+
+  "ice_theme_puzzle": {
+    "name": "Frozen Conduits",
+    "gridSize": 7,
+    "timeLimit": 150,
+    "source": {"x": 3, "y": 0, "edge": 0},
+    "destination": {"x": 3, "y": 6, "edge": 2},
+    "lighting": [
+      {"x": 1, "y": 3, "type": "ice"},
+      {"x": 5, "y": 3, "type": "ice"}
+    ],
+    "visual": {
+      "energyColor": "#00ddff",
+      "pipeColor": "#6699cc",
+      "bgColor": "#0a1a2a",
+      "gridLineColor": "#4488bb",
+      "flowSpeed": 2,
+      "particleCount": 12,
+      "ambientParticleCount": 50,
+      "showGears": false,
+      "showSteam": false,
+      "particles": [
+        {
+          "type": "snowflakes",
+          "count": 30,
+          "color": "#ffffff",
+          "speed": 1,
+          "size": 4
+        },
+        {
+          "type": "frost",
+          "count": 15,
+          "color": "#aaddff",
+          "speed": 0.5,
+          "size": 2
+        }
+      ]
+    },
+    "description": "Thaw the frozen energy channels"
+  },
+
+  "nature_theme_puzzle": {
+    "name": "Living Vines",
+    "gridSize": 7,
+    "timeLimit": 120,
+    "source": {"x": 0, "y": 0, "edge": 3},
+    "destination": {"x": 6, "y": 6, "edge": 1},
+    "lighting": [
+      {"x": 2, "y": 2, "type": "poison"},
+      {"x": 4, "y": 2, "type": "poison"},
+      {"x": 2, "y": 4, "type": "poison"},
+      {"x": 4, "y": 4, "type": "poison"}
+    ],
+    "visual": {
+      "energyColor": "#00ff66",
+      "pipeColor": "#338844",
+      "bgColor": "#0f1f0f",
+      "gridLineColor": "#66aa66",
+      "flowSpeed": 3,
+      "particleCount": 20,
+      "ambientParticleCount": 60,
+      "showGears": false,
+      "showSteam": true,
+      "particles": [
+        {
+          "type": "leaves",
+          "count": 25,
+          "color": "#44ff88",
+          "speed": 1.5,
+          "size": 5
+        },
+        {
+          "type": "pollen",
+          "count": 40,
+          "color": "#ffff66",
+          "speed": 0.8,
+          "size": 1
+        }
+      ]
+    },
+    "description": "Guide life energy through ancient vines"
+  },
+
+  "electric_theme_puzzle": {
+    "name": "Power Grid",
+    "gridSize": 7,
+    "timeLimit": 90,
+    "source": {"x": 0, "y": 3, "edge": 3},
+    "destination": {"x": 6, "y": 3, "edge": 1},
+    "lighting": [
+      {"x": 3, "y": 1, "type": "electric"},
+      {"x": 3, "y": 5, "type": "electric"}
+    ],
+    "visual": {
+      "energyColor": "#00ffff",
+      "pipeColor": "#4466aa",
+      "bgColor": "#0a0a1a",
+      "gridLineColor": "#6688cc",
+      "flowSpeed": 6,
+      "particleCount": 25,
+      "ambientParticleCount": 35,
+      "showGears": true,
+      "showSteam": false,
+      "particles": [
+        {
+          "type": "lightning",
+          "count": 15,
+          "color": "#ffff00",
+          "speed": 8,
+          "size": 2
+        },
+        {
+          "type": "static",
+          "count": 50,
+          "color": "#aaffff",
+          "speed": 4,
+          "size": 1
+        }
+      ]
+    },
+    "description": "Route electricity through the power grid"
+  },
+
+  "arcane_theme_puzzle": {
+    "name": "Mystical Circuit",
+    "gridSize": 9,
+    "timeLimit": 180,
+    "source": {"x": 0, "y": 4, "edge": 3},
+    "destination": {"x": 8, "y": 4, "edge": 1},
+    "lighting": [
+      {"x": 2, "y": 2, "type": "arcane"},
+      {"x": 6, "y": 2, "type": "arcane"},
+      {"x": 2, "y": 6, "type": "arcane"},
+      {"x": 6, "y": 6, "type": "arcane"},
+      {"x": 4, "y": 4, "type": "arcane"}
+    ],
+    "visual": {
+      "energyColor": "#cc66ff",
+      "pipeColor": "#664488",
+      "bgColor": "#1a0a2a",
+      "gridLineColor": "#8855aa",
+      "flowSpeed": 3,
+      "particleCount": 18,
+      "ambientParticleCount": 45,
+      "showGears": true,
+      "showSteam": true,
+      "particles": [
+        {
+          "type": "runes",
+          "count": 12,
+          "color": "#ff66ff",
+          "speed": 2,
+          "size": 6
+        },
+        {
+          "type": "stardust",
+          "count": 60,
+          "color": "#ffffff",
+          "speed": 1,
+          "size": 1
+        }
+      ]
+    },
+    "description": "Channel arcane energy through mystical conduits"
+  }
+}
