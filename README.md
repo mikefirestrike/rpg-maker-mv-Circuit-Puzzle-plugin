@@ -1,5 +1,5 @@
 # Circuit Puzzle Complete Package - Visual Customization Edition
-
+AI was used to code this plugin.
 ## 📦 What's Included
 
 This package contains everything you need for the complete Circuit Puzzle system with full visual customization:
