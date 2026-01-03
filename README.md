@@ -290,9 +290,7 @@ Credit appreciated but not required.
 
 ## 🎉 Credits
 
-Created by MikeFirestrike
-Circuit Puzzle System with Visual Customization
-Version 2.0 - Complete Edition
+Created by Mike Firestrike with AI assitance
 
 ---
 
